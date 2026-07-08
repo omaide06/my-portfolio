@@ -4,8 +4,8 @@ A modern, responsive, and interactive personal portfolio website built to showca
 
 ## 🌐 Live Demo
 
-> Add your deployed website link here
-> Example: https://your-portfolio.vercel.app
+> [Add your deployed website link here
+> Example: https://your-portfolio.vercel.app](https://om-2006-portfolio.netlify.app/)
 
 ## ✨ Features
 
