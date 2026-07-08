@@ -1,0 +1,6 @@
+{
+  "name": "Om Aide Portfolio",
+  "description": "Student portfolio of Om Aide showing learning timeline and projects.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

@@ -1,0 +1,50 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,600;1,400;1,600&family=Syne:wght@700;800&family=JetBrains+Mono:wght@300;400;500&display=swap');
+
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Syne", sans-serif;
+  --font-serif: "Playfair Display", Georgia, serif;
+  --font-mono: "JetBrains Mono", monospace;
+  
+  --color-matte-black: #000000;
+  --color-off-white: #F5F5F3;
+  --color-mustard: #F4A623;
+  --color-light-gray: #EAEAEA;
+  --color-medium-gray: #999999;
+}
+
+/* Custom scroll behavior and selection style */
+html {
+  scroll-behavior: smooth;
+  background-color: #F5F5F3;
+  color: #000000;
+}
+
+@media (pointer: fine) {
+  html, body, button, a, input, textarea, [role="button"], .cursor-pointer {
+    cursor: none !important;
+  }
+}
+
+::selection {
+  background-color: #F4A623;
+  color: #000000;
+}
+
+/* Custom styling for sleek horizontal tickers */
+@keyframes marquee {
+  0% { transform: translateX(0%); }
+  100% { transform: translateX(-50%); }
+}
+
+.animate-marquee {
+  display: flex;
+  width: max-content;
+  animation: marquee 25s linear infinite;
+}
+
+.animate-marquee:hover {
+  animation-play-state: paused;
+}
