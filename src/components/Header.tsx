@@ -159,6 +159,11 @@ export default function Header({ activeSection: controlledActiveSection, onSecti
     { name: 'Contact', target: 'contact' },
   ];
 
+  // Last page (Footer section) me top duplicate navigation bar ko completely hide kar do
+  if (activeSection === 'footer') {
+    return null;
+  }
+
   const showHeader = isHomePage || isVisible || isHovered || mobileMenuOpen;
 
   return (

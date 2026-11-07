@@ -1,26 +1,36 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
-import { Sparkles, Heart, Hand } from 'lucide-react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { motion, AnimatePresence, useMotionValue, animate } from 'motion/react';
+import { Sparkles, Heart } from 'lucide-react';
 
 /**
  * FooterCat Component
- * A delightful, interactive animated cat for the Footer section.
- * - Smoothly wanders / patrols horizontally across the screen
- * - Automatically cycles warm "Thank you" & "Goodbye/Best Wishes" messages
- * - Interactive: click to pet, hearts pop, eye pupil tracks mouse
- * - Flips walking direction naturally without mirroring the speech bubble
+ * Interactive animated cat for the Footer section:
+ * 1. Autonomous random wandering across the footer area (moves to random spots, walks, turns).
+ * 2. Full mouse drag support: user can pick up and place the cat anywhere with mouse cursor!
+ * 3. Real-time pupil tracking following user cursor.
+ * 4. Automatic cycling speech bubble with Thank You & Goodbye / Best Wishes.
+ * 5. Interactive petting with floating hearts and happy reactions.
  */
 export default function FooterCat() {
+  // Motion values for smooth unified dragging + autonomous wandering
+  const x = useMotionValue(0);
+  const y = useMotionValue(0);
+
+  // Animation controller and timer references
+  const wanderAnimXRef = useRef<ReturnType<typeof animate> | null>(null);
+  const wanderAnimYRef = useRef<ReturnType<typeof animate> | null>(null);
+  const wanderTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const isDraggingRef = useRef(false);
+
+  // Visual states
   const [pupilOffset, setPupilOffset] = useState({ x: 0, y: 0 });
   const [isBlinking, setIsBlinking] = useState(false);
   const [isPet, setIsPet] = useState(false);
-  const [walkingDir, setWalkingDir] = useState<1 | -1>(1); // 1 = right, -1 = left
-  const [messageIndex, setMessageIndex] = useState(0);
+  const [facingRight, setFacingRight] = useState(true);
+  const [isWalking, setIsWalking] = useState(false);
+  const [isUserDragging, setIsUserDragging] = useState(false);
 
-  const eyeLeftRef = useRef<SVGEllipseElement | null>(null);
-  const isDraggingRef = useRef(false);
-
-  // Farewell, thank you & best wishes messages
+  // Dynamic wishes list
   const wishesList = [
     "Thank you so much for visiting! 🐾",
     "Wishing you an amazing day ahead! ✨",
@@ -30,13 +40,15 @@ export default function FooterCat() {
     "Have a great journey ahead! 🌟",
     "Purrr... farewell friend, until next time! 🐱",
   ];
+  const [messageIndex, setMessageIndex] = useState(0);
 
-  // Auto-cycle wishes every 4.5 seconds
+  const eyeLeftRef = useRef<SVGEllipseElement | null>(null);
+
+  // Auto-cycle wishes every 4.2 seconds
   useEffect(() => {
     const cycleInterval = setInterval(() => {
       setMessageIndex((prev) => (prev + 1) % wishesList.length);
-    }, 4500);
-
+    }, 4200);
     return () => clearInterval(cycleInterval);
   }, [wishesList.length]);
 
@@ -46,11 +58,10 @@ export default function FooterCat() {
       setIsBlinking(true);
       setTimeout(() => setIsBlinking(false), 150);
     }, 3600);
-
     return () => clearInterval(blinkInterval);
   }, []);
 
-  // Track global cursor coordinates to make eyes follow mouse
+  // Track global cursor coordinates to make cat's eyes follow the mouse
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
       if (!eyeLeftRef.current) return;
@@ -73,55 +84,156 @@ export default function FooterCat() {
     return () => window.removeEventListener('mousemove', handleMouseMove);
   }, []);
 
-  // Click on cat or speech bubble to pet and cycle next wish
-  const handleCatInteraction = () => {
-    if (isDraggingRef.current) return;
+  // Petting interaction: shows heart and cycles to next wish
+  const triggerPet = useCallback(() => {
     setIsPet(true);
     setMessageIndex((prev) => (prev + 1) % wishesList.length);
     setTimeout(() => setIsPet(false), 600);
+  }, [wishesList.length]);
+
+  // Autonomous wandering animation to a target coordinate
+  const wanderTo = useCallback((targetX: number, targetY: number) => {
+    if (isDraggingRef.current) return;
+
+    const currentX = x.get();
+    const currentY = y.get();
+
+    // Orient facing direction towards destination
+    if (targetX > currentX + 6) {
+      setFacingRight(true);
+    } else if (targetX < currentX - 6) {
+      setFacingRight(false);
+    }
+
+    const distance = Math.hypot(targetX - currentX, targetY - currentY);
+    // Natural walking speed (~100px - 140px per second)
+    const duration = Math.max(1.8, Math.min(3.8, distance / 110));
+
+    setIsWalking(true);
+
+    wanderAnimXRef.current?.stop();
+    wanderAnimYRef.current?.stop();
+
+    wanderAnimXRef.current = animate(x, targetX, {
+      duration,
+      ease: [0.35, 0, 0.25, 1],
+      onComplete: () => {
+        setIsWalking(false);
+      },
+    });
+
+    wanderAnimYRef.current = animate(y, targetY, {
+      duration,
+      ease: [0.35, 0, 0.25, 1],
+    });
+  }, [x, y]);
+
+  const scheduleNextWanderRef = useRef<((delayMs?: number) => void) | null>(null);
+
+  // Schedules the next random wander across the footer area
+  const scheduleNextWander = useCallback((delayMs: number = 2000) => {
+    if (wanderTimeoutRef.current) clearTimeout(wanderTimeoutRef.current);
+
+    wanderTimeoutRef.current = setTimeout(() => {
+      if (isDraggingRef.current) return;
+
+      const currentX = x.get();
+      const currentY = y.get();
+      const maxX = Math.min(typeof window !== 'undefined' ? window.innerWidth * 0.35 : 320, 360);
+
+      let targetX: number;
+      // If user dragged cat far away from center, wander back smoothly
+      if (Math.abs(currentX) > maxX * 1.1) {
+        targetX = Math.round((Math.random() * 2 - 1) * maxX * 0.5);
+      } else {
+        // Wander to a new random spot in comfortable footer bounds
+        const deltaX = (Math.random() * 2 - 1) * 200;
+        targetX = Math.round(Math.max(-maxX, Math.min(maxX, currentX + deltaX)));
+      }
+
+      // Gentle vertical wander
+      const deltaY = (Math.random() * 2 - 1) * 35;
+      const targetY = Math.round(Math.max(-35, Math.min(35, currentY + deltaY)));
+
+      wanderTo(targetX, targetY);
+
+      // Schedule next random wandering in 4 to 6.5 seconds
+      const nextDelay = Math.random() * 2500 + 4000;
+      scheduleNextWanderRef.current?.(nextDelay);
+    }, delayMs);
+  }, [wanderTo, x, y]);
+
+  useEffect(() => {
+    scheduleNextWanderRef.current = scheduleNextWander;
+  }, [scheduleNextWander]);
+
+  // Start autonomous wander cycle when component mounts
+  useEffect(() => {
+    scheduleNextWander(1800);
+
+    return () => {
+      if (wanderTimeoutRef.current) clearTimeout(wanderTimeoutRef.current);
+      wanderAnimXRef.current?.stop();
+      wanderAnimYRef.current?.stop();
+    };
+  }, [scheduleNextWander]);
+
+  // Drag handlers
+  const handleDragStart = () => {
+    isDraggingRef.current = true;
+    setIsUserDragging(true);
+    setIsWalking(false);
+
+    // Cancel active wandering animations immediately
+    wanderAnimXRef.current?.stop();
+    wanderAnimYRef.current?.stop();
+    if (wanderTimeoutRef.current) clearTimeout(wanderTimeoutRef.current);
+  };
+
+  const handleDrag = (_: MouseEvent | TouchEvent | PointerEvent, info: { delta: { x: number; y: number } }) => {
+    // Face the direction user is currently moving the mouse
+    if (info.delta.x > 1.2) {
+      setFacingRight(true);
+    } else if (info.delta.x < -1.2) {
+      setFacingRight(false);
+    }
+  };
+
+  const handleDragEnd = (_: MouseEvent | TouchEvent | PointerEvent, info: { offset: { x: number; y: number } }) => {
+    isDraggingRef.current = false;
+    setIsUserDragging(false);
+
+    // If mouse barely moved (< 5px), treat it as an affectionate click/pet
+    const draggedDist = Math.hypot(info.offset.x, info.offset.y);
+    if (draggedDist < 5) {
+      triggerPet();
+    }
+
+    // Cat stays where user dropped it, then resumes wandering after a brief rest
+    scheduleNextWander(3800);
   };
 
   return (
-    <div className="w-full relative py-6 flex justify-center items-center overflow-visible select-none pointer-events-none">
+    <div className="w-full relative py-4 flex justify-center items-center overflow-visible select-none">
       {/* 
-        Horizontal Moving Patrol Controller:
-        Moves smoothly across the screen [-24vw to 24vw] back and forth
+        Single Unified Motion Controller:
+        - Handled directly by MotionValues x & y
+        - Can be dragged anywhere by mouse/touch
+        - Wanders autonomously across the screen when left alone
       */}
       <motion.div
-        animate={{
-          x: ['-22vw', '22vw', '22vw', '-22vw', '-22vw'],
-        }}
-        transition={{
-          duration: 18,
-          repeat: Infinity,
-          ease: 'easeInOut',
-          times: [0, 0.48, 0.50, 0.98, 1],
-        }}
-        onUpdate={(latest) => {
-          // Detect moving direction to flip cat sprite
-          if (typeof latest.x === 'string') {
-            const val = parseFloat(latest.x);
-            // If heading right
-            if (val > -21 && val < 21) {
-              // Handled by keyframes orientation
-            }
-          }
-        }}
-        drag="x"
-        dragConstraints={{ left: -300, right: 300 }}
+        style={{ x, y }}
+        drag
+        dragMomentum={false}
         dragElastic={0.08}
-        onDragStart={() => {
-          isDraggingRef.current = true;
-        }}
-        onDragEnd={() => {
-          setTimeout(() => {
-            isDraggingRef.current = false;
-          }, 150);
-        }}
-        className="relative flex flex-col items-center justify-center cursor-grab active:cursor-grabbing pointer-events-auto z-20"
-        title="Click to pet me or drag me around!"
+        onDragStart={handleDragStart}
+        onDrag={handleDrag}
+        onDragEnd={handleDragEnd}
+        whileDrag={{ scale: 1.07 }}
+        className="relative flex flex-col items-center justify-center cursor-grab active:cursor-grabbing z-20 touch-none"
+        title="Move me anywhere with your mouse or click to pet!"
       >
-        {/* Interactive Speech Bubble with Thank you & Bye wishes */}
+        {/* Interactive Speech Bubble with Thank you & Bye wishes (Always upright, never mirrored) */}
         <div className="relative mb-2 z-30 pointer-events-auto">
           <AnimatePresence mode="wait">
             <motion.button
@@ -130,14 +242,17 @@ export default function FooterCat() {
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.85, y: -8 }}
               transition={{ duration: 0.25 }}
-              onClick={handleCatInteraction}
-              className="relative bg-white text-black px-4 py-2.5 rounded-2xl shadow-xl border border-black/10 font-mono text-xs font-semibold tracking-wide flex items-center gap-2 cursor-pointer hover:border-mustard hover:shadow-mustard/20 transition-all active:scale-95 whitespace-nowrap"
+              onClick={(e) => {
+                e.stopPropagation();
+                triggerPet();
+              }}
+              className="relative bg-white text-black px-4 py-2 rounded-2xl shadow-xl border border-black/10 font-mono text-xs font-semibold tracking-wide flex items-center gap-2 cursor-pointer hover:border-mustard hover:shadow-mustard/20 transition-all active:scale-95 whitespace-nowrap"
             >
               <span className="w-2 h-2 rounded-full bg-mustard animate-pulse" />
               <span>{wishesList[messageIndex]}</span>
               <Sparkles className="w-3.5 h-3.5 text-mustard" />
 
-              {/* Speech bubble downward arrow pointer */}
+              {/* Speech bubble pointer tip */}
               <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[8px] border-t-white" />
             </motion.button>
           </AnimatePresence>
@@ -159,25 +274,28 @@ export default function FooterCat() {
         </AnimatePresence>
 
         {/* 
-          Cat Illustration Sprite:
-          Flips horizontally based on travel direction [scaleX: 1 to -1]
-          Bobbing walking motion [y: 0, -4, 0]
+          Cat Graphic Container:
+          - Flips to face direction of movement (facingRight ? 1 : -1)
+          - Bobs rhythmically while walking or when petted
         */}
         <motion.div
           animate={{
-            scaleX: [1, 1, -1, -1, 1],
-            y: [0, -5, 0, -5, 0],
+            scaleX: facingRight ? 1 : -1,
+            y: isWalking ? [0, -6, 0, -6, 0] : isPet ? [0, -8, 2, 0] : [0, -4, 0],
           }}
           transition={{
-            scaleX: { duration: 18, repeat: Infinity, times: [0, 0.48, 0.50, 0.98, 1], ease: 'linear' },
-            y: { duration: 0.6, repeat: Infinity, ease: 'easeInOut' },
+            scaleX: { duration: 0.3, ease: 'easeOut' },
+            y: isWalking
+              ? { duration: 0.5, repeat: Infinity, ease: 'easeInOut' }
+              : isPet
+              ? { duration: 0.45, ease: 'easeOut' }
+              : { duration: 2.8, repeat: Infinity, ease: 'easeInOut' },
           }}
-          onClick={handleCatInteraction}
-          className="relative cursor-pointer"
+          className="relative"
         >
           <svg
             viewBox="0 0 220 250"
-            className="w-40 h-48 sm:w-48 sm:h-56 drop-shadow-xl pointer-events-none"
+            className="w-40 h-48 sm:w-48 sm:h-56 drop-shadow-xl pointer-events-none select-none"
             fill="none"
             xmlns="http://www.w3.org/2000/svg"
           >
@@ -185,8 +303,8 @@ export default function FooterCat() {
             <motion.path
               d="M 68 190 C 35 180 12 140 18 105 C 22 85 42 90 38 108 C 30 132 48 168 74 182 Z"
               fill="#121211"
-              animate={{ rotate: [-8, 12, -8] }}
-              transition={{ repeat: Infinity, duration: 1.8, ease: 'easeInOut' }}
+              animate={{ rotate: isWalking ? [-14, 18, -14] : isUserDragging ? [15, -15, 15] : [-8, 10, -8] }}
+              transition={{ repeat: Infinity, duration: isWalking ? 1.0 : isUserDragging ? 0.8 : 2.0, ease: 'easeInOut' }}
               style={{ transformOrigin: '72px 190px' }}
             />
 
@@ -203,10 +321,10 @@ export default function FooterCat() {
               opacity="0.6"
             />
 
-            {/* Front Paws with cute stepping animation */}
+            {/* Left Front Paw (Trotting animation while walking) */}
             <motion.g
-              animate={{ y: [0, -3, 0] }}
-              transition={{ duration: 0.6, repeat: Infinity, ease: 'easeInOut' }}
+              animate={isWalking ? { y: [0, -4, 0] } : { y: 0 }}
+              transition={{ duration: 0.5, repeat: isWalking ? Infinity : 0, ease: 'easeInOut' }}
             >
               <ellipse cx="92" cy="216" rx="10" ry="5" fill="#0D0D0C" />
               <circle cx="88" cy="218" r="1.5" fill="#2A2A28" />
@@ -214,10 +332,10 @@ export default function FooterCat() {
               <circle cx="96" cy="218" r="1.5" fill="#2A2A28" />
             </motion.g>
 
-            {/* Right Waving Paw (Waving goodbye / bye-bye!) */}
+            {/* Right Waving Paw (Waves goodbye with mustard paw-pads!) */}
             <motion.g
-              animate={{ rotate: [0, 18, -6, 18, 0], y: [0, -4, 0] }}
-              transition={{ duration: 1.6, repeat: Infinity, ease: 'easeInOut' }}
+              animate={{ rotate: [0, 18, -6, 18, 0], y: [0, -3, 0] }}
+              transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
               style={{ transformOrigin: '128px 190px' }}
             >
               {/* Paw Arm */}
@@ -263,7 +381,7 @@ export default function FooterCat() {
             <path d="M 157 92 C 182 92 202 94 215 99" stroke="#121211" strokeWidth="1.8" strokeLinecap="round" />
             <path d="M 155 98 C 178 102 198 108 208 116" stroke="#121211" strokeWidth="1.8" strokeLinecap="round" />
 
-            {/* 4. BIG EXPRESSIVE EYES with pupil tracking */}
+            {/* 4. BIG EXPRESSIVE EYES with real-time pupil tracking */}
             <g>
               {/* Left Eye */}
               <motion.ellipse
