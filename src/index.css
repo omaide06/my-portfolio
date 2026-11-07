@@ -22,12 +22,6 @@ html {
   color: #000000;
 }
 
-@media (pointer: fine) {
-  html, body, button, a, input, textarea, [role="button"], .cursor-pointer {
-    cursor: none !important;
-  }
-}
-
 ::selection {
   background-color: #F4A623;
   color: #000000;

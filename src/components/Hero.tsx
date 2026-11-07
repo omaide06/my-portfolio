@@ -1,7 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
+import AnimatedCat from './AnimatedCat';
 
-export default function Hero() {
+interface HeroProps {
+  onSectionChange?: (target: string) => void;
+}
+
+export default function Hero({ onSectionChange }: HeroProps) {
   const [hasScrolled, setHasScrolled] = useState(false);
   const [greeting, setGreeting] = useState('Hello');
 
@@ -40,6 +45,10 @@ export default function Hero() {
   }, []);
 
   const handleScrollClick = () => {
+    if (onSectionChange) {
+      onSectionChange('about');
+      return;
+    }
     const nextBtn = document.querySelector('button[title="Go to about"]');
     if (nextBtn) {
       (nextBtn as HTMLButtonElement).click();
@@ -53,78 +62,74 @@ export default function Hero() {
     >
       <div className="max-w-7xl mx-auto px-6 md:px-12 w-full relative z-10">
         
-        {/* Left Side Content Block */}
-        <div className="flex flex-col justify-center space-y-10">
+        {/* 2-Column Responsive Layout: Content Left, Animated Cat Right */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-center">
           
-          <div className="space-y-6 flex flex-col items-start">
-            <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-              className="inline-flex items-center gap-2 bg-black/5 py-1.5 px-3.5 rounded-full border border-black/10 text-xs font-mono text-black select-none"
-            >
-              <span className="w-1.5 h-1.5 rounded-full bg-mustard animate-pulse" />
-              <span>{greeting}, visitor // welcome</span>
-            </motion.div>
+          {/* Left Side Content Block */}
+          <div className="lg:col-span-8 flex flex-col justify-center space-y-10">
+            <div className="space-y-6 flex flex-col items-start w-full">
+              <motion.h1
+                 initial={{ opacity: 0, y: 30 }}
+                 animate={{ opacity: 1, y: 0 }}
+                 transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1], delay: 0.1 }}
+                 className="text-6xl sm:text-7xl md:text-8xl xl:text-9xl font-display font-extrabold text-black leading-[0.85] tracking-tighter select-none w-full"
+              >
+                <span className="block whitespace-nowrap">
+                  {"STAY".split("").map((char, idx) => (
+                    <motion.span
+                      key={`stay-${idx}`}
+                      className="inline-block origin-bottom cursor-pointer hover:text-mustard transition-colors duration-150"
+                      whileHover={{
+                        scale: 1.18,
+                        y: -14,
+                        rotate: idx % 2 === 0 ? -7 : 7,
+                        color: "#f1c40f",
+                      }}
+                      transition={{ type: "spring", stiffness: 400, damping: 14 }}
+                    >
+                      {char}
+                    </motion.span>
+                  ))}
+                </span>
+                <span className="block whitespace-nowrap">
+                  {"WEIRD".split("").map((char, idx) => (
+                    <motion.span
+                      key={`weird-${idx}`}
+                      className="inline-block origin-bottom cursor-pointer hover:text-mustard transition-colors duration-150"
+                      whileHover={{
+                        scale: 1.18,
+                        y: -14,
+                        rotate: idx % 2 === 0 ? 7 : -7,
+                        color: "#f1c40f",
+                      }}
+                      transition={{ type: "spring", stiffness: 400, damping: 14 }}
+                    >
+                      {char}
+                    </motion.span>
+                  ))}
+                </span>
+              </motion.h1>
 
-            <motion.h1
-               initial={{ opacity: 0, y: 30 }}
-               animate={{ opacity: 1, y: 0 }}
-               transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1], delay: 0.1 }}
-               className="text-7xl sm:text-8xl md:text-9xl font-display font-extrabold text-black leading-[0.85] tracking-tighter select-none"
-            >
-              <span className="block">
-                {"STAY".split("").map((char, idx) => (
-                  <motion.span
-                    key={`stay-${idx}`}
-                    className="inline-block origin-bottom cursor-pointer hover:text-mustard transition-colors duration-150"
-                    whileHover={{
-                      scale: 1.18,
-                      y: -14,
-                      rotate: idx % 2 === 0 ? -7 : 7,
-                      color: "#f1c40f",
-                    }}
-                    transition={{ type: "spring", stiffness: 400, damping: 14 }}
-                  >
-                    {char}
-                  </motion.span>
-                ))}
-              </span>
-              <span className="block">
-                {"WEIRD".split("").map((char, idx) => (
-                  <motion.span
-                    key={`weird-${idx}`}
-                    className="inline-block origin-bottom cursor-pointer hover:text-mustard transition-colors duration-150"
-                    whileHover={{
-                      scale: 1.18,
-                      y: -14,
-                      rotate: idx % 2 === 0 ? 7 : -7,
-                      color: "#f1c40f",
-                    }}
-                    transition={{ type: "spring", stiffness: 400, damping: 14 }}
-                  >
-                    {char}
-                  </motion.span>
-                ))}
-              </span>
-            </motion.h1>
-
-            <motion.p
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2, duration: 0.6 }}
-              className="max-w-xl text-base sm:text-lg text-black font-sans leading-relaxed text-left md:ml-32 font-light"
-            >
-              Welcome to my portfolio! I’m a dedicated student with a strong interest in learning and building new skills. I’m passionate about growing my knowledge and turning ideas into reality
-            </motion.p>
+              <motion.p
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2, duration: 0.6 }}
+                className="max-w-xl text-base sm:text-lg text-black font-sans leading-relaxed text-left md:ml-12 font-light"
+              >
+                Welcome to my portfolio! I’m a dedicated student with a strong interest in learning and building new skills. I’m passionate about growing my knowledge and turning ideas into reality
+              </motion.p>
+            </div>
           </div>
 
+          {/* Right Side: Interactive Animated Cat with Greeting Bubble */}
           <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.4, duration: 0.6 }}
-            className="md:ml-32 border-b border-black/10 pb-6 opacity-0 pointer-events-none select-none h-0 p-0"
-          />
+            initial={{ opacity: 0, scale: 0.9, x: 30 }}
+            animate={{ opacity: 1, scale: 1, x: 0 }}
+            transition={{ duration: 0.9, delay: 0.25, ease: [0.16, 1, 0.3, 1] }}
+            className="lg:col-span-4 flex justify-center items-center py-4"
+          >
+            <AnimatedCat greetingTime={greeting} />
+          </motion.div>
 
         </div>
 

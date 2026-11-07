@@ -15,7 +15,6 @@ import Skills from './components/Skills';
 import Experience from './components/Experience';
 import Contact from './components/Contact';
 import Footer from './components/Footer';
-import CustomCursor from './components/CustomCursor';
 import BackToTop from './components/BackToTop';
 import Preloader from './components/Preloader';
 
@@ -178,9 +177,6 @@ export default function App() {
             transition={{ duration: 0.5 }}
             className="h-full w-full relative flex flex-col"
           >
-            {/* Custom interactive magnetic/fluid circular cursor */}
-            <CustomCursor />
- 
             {/* PREMIUM VISUAL ELEMENT: Horizontal global loading progress tracker bar */}
             <div className="fixed top-0 left-0 right-0 h-[3px] bg-neutral-200/40 z-50 overflow-hidden">
               <motion.div
@@ -209,10 +205,10 @@ export default function App() {
                   exit={{ opacity: 0, y: -40 }}
                   transition={{ duration: 0.7, ease: [0.76, 0, 0.24, 1] }}
                   id={`scroll-container-${activeSection}`}
-                  className="w-full h-full overflow-y-auto overflow-x-hidden bg-transparent scroll-smooth select-none"
+                  className="w-full h-full overflow-y-auto overflow-x-hidden bg-transparent scroll-smooth"
                 >
                   {/* Mount and transition individual view modules strictly based on selection */}
-                  {activeSection === 'home' && <Hero />}
+                  {activeSection === 'home' && <Hero onSectionChange={handleSectionTransition} />}
                   {activeSection === 'about' && <About />}
                   {activeSection === 'skills' && <Skills />}
                   {activeSection === 'experience' && <Experience />}
