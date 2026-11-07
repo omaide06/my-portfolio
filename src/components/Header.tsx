@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Menu, X, ArrowUpRight } from 'lucide-react';
 
@@ -10,7 +10,7 @@ interface HeaderProps {
 /**
  * Header / Navigation Component
  * Provides responsive site header styling that switches background states when scrolled,
- * detects active layout sections via Scroll positions, and renders the mobile navigation drawer.
+ * auto-hides after initial page load, and slides down on hover when cursor moves to the top edge.
  */
 export default function Header({ activeSection: controlledActiveSection, onSectionChange }: HeaderProps) {
   const [internalScrolled, setInternalScrolled] = useState(false); // Header background light theme trigger on scroll
@@ -18,9 +18,75 @@ export default function Header({ activeSection: controlledActiveSection, onSecti
   const [internalActiveSection, setInternalActiveSection] = useState('home'); // Tracks active visible viewport section
   const [copied, setCopied] = useState(false); // State to display "copied!" feedback when copying email
 
+  // Auto-hide navigation bar states
+  const [isVisible, setIsVisible] = useState(true);
+  const [isHovered, setIsHovered] = useState(false);
+  const isHoveredRef = useRef(false);
+
   // Combine controlled vs internal states for active sections and scrolled classes
   const activeSection = controlledActiveSection ?? internalActiveSection;
+  const isHomePage = activeSection === 'home';
   const isScrolled = controlledActiveSection ? (controlledActiveSection !== 'home') : internalScrolled;
+
+  useEffect(() => {
+    isHoveredRef.current = isHovered;
+  }, [isHovered]);
+
+  // Home page par navbar hamesha visible rahegi, doosre pages par initial delay ke baad auto-hide hogi
+  useEffect(() => {
+    if (isHomePage) {
+      setIsVisible(true);
+      return;
+    }
+
+    const timer = setTimeout(() => {
+      if (!isHoveredRef.current) {
+        setIsVisible(false);
+      }
+    }, 1800);
+    return () => clearTimeout(timer);
+  }, [isHomePage]);
+
+  // Cursor window ke top (<= 60px) par aate hi wapas reveal hoga, aur cursor hatate hi hide ho jayega (except on Home page)
+  useEffect(() => {
+    let hideTimer: ReturnType<typeof setTimeout>;
+
+    const handleMouseMove = (e: MouseEvent) => {
+      if (isHomePage) {
+        setIsVisible(true);
+        return;
+      }
+
+      if (e.clientY <= 60) {
+        clearTimeout(hideTimer);
+        setIsVisible(true);
+      } else if (!isHoveredRef.current && !mobileMenuOpen) {
+        clearTimeout(hideTimer);
+        hideTimer = setTimeout(() => {
+          if (!isHoveredRef.current) {
+            setIsVisible(false);
+          }
+        }, 150);
+      }
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      clearTimeout(hideTimer);
+    };
+  }, [isHomePage, mobileMenuOpen]);
+
+  // Mobile / Touch device support
+  useEffect(() => {
+    const handleTouchStart = (e: TouchEvent) => {
+      if (e.touches && e.touches[0] && e.touches[0].clientY <= 60) {
+        setIsVisible(true);
+      }
+    };
+    window.addEventListener('touchstart', handleTouchStart, { passive: true });
+    return () => window.removeEventListener('touchstart', handleTouchStart);
+  }, []);
 
   // Handles copying email to user's clipboard and opening native client mailto protocol
   const handleEmailClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
@@ -93,13 +159,41 @@ export default function Header({ activeSection: controlledActiveSection, onSecti
     { name: 'Contact', target: 'contact' },
   ];
 
+  const showHeader = isHomePage || isVisible || isHovered || mobileMenuOpen;
+
   return (
     <>
+      {/* Invisible top hover trigger area to detect mouse entering the top edge (active on subpages) */}
+      {!isHomePage && (
+        <div
+          className="fixed top-0 left-0 right-0 h-4 z-40 pointer-events-auto"
+          onMouseEnter={() => {
+            setIsVisible(true);
+          }}
+        />
+      )}
+
       <header
         id="navbar-site"
-        className={`fixed top-0 left-0 right-0 z-40 transition-all duration-300 ${
+        onMouseEnter={() => {
+          setIsHovered(true);
+          isHoveredRef.current = true;
+          setIsVisible(true);
+        }}
+        onMouseLeave={() => {
+          setIsHovered(false);
+          isHoveredRef.current = false;
+          if (!isHomePage) {
+            setIsVisible(false);
+          }
+        }}
+        className={`fixed top-0 left-0 right-0 z-40 transition-all duration-300 ease-in-out ${
+          showHeader
+            ? 'translate-y-0 opacity-100 pointer-events-auto'
+            : '-translate-y-full opacity-0 pointer-events-none'
+        } ${
           isScrolled
-            ? 'bg-off-white/80 backdrop-blur-md py-4 border-b border-[#EAEAEA]'
+            ? 'bg-off-white/80 backdrop-blur-md py-4 border-b border-[#EAEAEA] shadow-sm'
             : 'bg-transparent py-6'
         }`}
       >

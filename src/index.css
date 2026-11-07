@@ -20,6 +20,19 @@ html {
   scroll-behavior: smooth;
   background-color: #F5F5F3;
   color: #000000;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+html, body, #root, * {
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+}
+
+::-webkit-scrollbar {
+  display: none !important;
+  width: 0px !important;
+  height: 0px !important;
 }
 
 ::selection {

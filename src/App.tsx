@@ -18,7 +18,7 @@ import Footer from './components/Footer';
 import Preloader from './components/Preloader';
 
 // Array list defining all sequential content sections in this portfolio
-const SECTIONS = ['home', 'about', 'skills', 'experience', 'contact'];
+const SECTIONS = ['home', 'about', 'skills', 'experience', 'contact', 'footer'];
 
 export default function App() {
   // ==========================================
@@ -162,7 +162,7 @@ export default function App() {
   // MAIN VIEW RENDERER (JSX LAYOUT)
   // ==========================================
   return (
-    <div className={`${activeSection === 'home' ? 'bg-off-white' : 'bg-matte-black'} h-screen w-screen overflow-hidden text-black antialiased relative transition-colors duration-500`}>
+    <div className={`${activeSection === 'home' || activeSection === 'footer' ? 'bg-off-white' : 'bg-matte-black'} h-screen w-screen overflow-hidden text-black antialiased relative transition-colors duration-500`}>
       <AnimatePresence mode="wait">
         {isLoading ? (
           /* [1] INTIAL BRAND PRELOADER DISPLAY */
@@ -201,21 +201,15 @@ export default function App() {
                   exit={{ opacity: 0, y: -40 }}
                   transition={{ duration: 0.7, ease: [0.76, 0, 0.24, 1] }}
                   id={`scroll-container-${activeSection}`}
-                  className={`w-full h-full overflow-y-auto overflow-x-hidden scroll-smooth ${activeSection === 'home' ? 'bg-off-white' : 'bg-matte-black'}`}
+                  className={`w-full h-full overflow-y-auto overflow-x-hidden scroll-smooth [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden ${activeSection === 'home' || activeSection === 'footer' ? 'bg-off-white' : 'bg-matte-black'}`}
                 >
                   {/* Mount and transition individual view modules strictly based on selection */}
                   {activeSection === 'home' && <Hero onSectionChange={handleSectionTransition} />}
                   {activeSection === 'about' && <About />}
                   {activeSection === 'skills' && <Skills />}
                   {activeSection === 'experience' && <Experience />}
-                  {activeSection === 'contact' && (
-                    <div className="flex flex-col min-h-full">
-                      <div className="flex-1">
-                        <Contact />
-                      </div>
-                      <Footer onSectionChange={handleSectionTransition} />
-                    </div>
-                  )}
+                  {activeSection === 'contact' && <Contact />}
+                  {activeSection === 'footer' && <Footer onSectionChange={handleSectionTransition} />}
                 </motion.div>
               </AnimatePresence>
             </main>

@@ -8,6 +8,17 @@ export default function Skills() {
       id="skills"
       className="min-h-full min-h-screen py-24 bg-matte-black text-white relative overflow-hidden border-t border-white/5 flex flex-col justify-center"
     >
+      {/* 
+        Horizontal Looping Text Marquee
+        Secondary ambient visual layer matching About section
+      */}
+      <div className="absolute top-12 left-0 right-0 overflow-hidden select-none pointer-events-none z-0 opacity-15">
+        <div className="animate-marquee whitespace-nowrap flex text-[10vw] font-display font-extrabold uppercase tracking-tight text-white leading-none">
+          <span>skills • skills • skills • skills • skills • skills • skills • skills •&nbsp;</span>
+          <span>skills • skills • skills • skills • skills • skills • skills • skills •&nbsp;</span>
+        </div>
+      </div>
+
       {/* Editorial Grid Backing Deco */}
       <div className="absolute inset-0 grid grid-cols-12 pointer-events-none opacity-[0.02]">
         <div className="col-span-3 border-r border-white h-full" />

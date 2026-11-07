@@ -18,6 +18,12 @@
     "paths": {
       "@/*": [
         "./src/*"
+      ],
+      "@designcodeio/threeui": [
+        "./src/shaders/predictive-arc/PredictiveArcCanvas.tsx"
+      ],
+      "@designcodeio/threeui/style.css": [
+        "./src/shaders/threeui.css"
       ]
     },
     "allowImportingTsExtensions": true,

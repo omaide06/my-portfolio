@@ -1,3 +1,6 @@
+import React from 'react';
+import FooterCat from './FooterCat';
+
 interface FooterProps {
   onSectionChange?: (target: string) => void;
 }
@@ -27,12 +30,12 @@ export default function Footer({ onSectionChange }: FooterProps) {
     { name: 'Home', target: 'home' },
     { name: 'About', target: 'about' },
     { name: 'Skills', target: 'skills' },
-    { name: 'Experience', target: 'experience' },
+    { name: 'Academic', target: 'experience' },
     { name: 'Contact', target: 'contact' },
   ];
 
   return (
-    <footer className="bg-off-white text-black pt-16 pb-8 border-t border-black/5 relative overflow-hidden select-none">
+    <footer className="min-h-full min-h-screen bg-off-white text-black py-16 md:py-20 border-t border-black/5 relative overflow-hidden select-none flex flex-col justify-between">
       <div className="max-w-7xl mx-auto px-6 md:px-12 relative z-10">
         
         {/* Top Segment containing Logo and Navigation Links */}
@@ -66,6 +69,11 @@ export default function Footer({ onSectionChange }: FooterProps) {
             ))}
           </nav>
 
+        </div>
+
+        {/* Dynamic Interactive Walking Footer Cat with Thank You & Bye Wishes */}
+        <div className="py-8 md:py-12 flex justify-center items-center overflow-visible">
+          <FooterCat />
         </div>
 
         {/* Bottom Metadata & Giant Typography Stamp */}
