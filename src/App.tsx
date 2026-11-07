@@ -15,7 +15,6 @@ import Skills from './components/Skills';
 import Experience from './components/Experience';
 import Contact from './components/Contact';
 import Footer from './components/Footer';
-import BackToTop from './components/BackToTop';
 import Preloader from './components/Preloader';
 
 // Array list defining all sequential content sections in this portfolio
@@ -163,7 +162,7 @@ export default function App() {
   // MAIN VIEW RENDERER (JSX LAYOUT)
   // ==========================================
   return (
-    <div className="bg-off-white h-screen w-screen overflow-hidden text-black antialiased relative">
+    <div className={`${activeSection === 'home' ? 'bg-off-white' : 'bg-matte-black'} h-screen w-screen overflow-hidden text-black antialiased relative transition-colors duration-500`}>
       <AnimatePresence mode="wait">
         {isLoading ? (
           /* [1] INTIAL BRAND PRELOADER DISPLAY */
@@ -189,9 +188,6 @@ export default function App() {
             </div>
  
  
-            {/* Quick floating "Return to Home/Top" visual helper button */}
-            <BackToTop activeSection={activeSection} onReset={() => handleSectionTransition('home')} />
- 
             {/* Top architectural menu container (Header passing status info) */}
             <Header activeSection={activeSection} onSectionChange={handleSectionTransition} />
  
@@ -205,7 +201,7 @@ export default function App() {
                   exit={{ opacity: 0, y: -40 }}
                   transition={{ duration: 0.7, ease: [0.76, 0, 0.24, 1] }}
                   id={`scroll-container-${activeSection}`}
-                  className="w-full h-full overflow-y-auto overflow-x-hidden bg-transparent scroll-smooth"
+                  className={`w-full h-full overflow-y-auto overflow-x-hidden scroll-smooth ${activeSection === 'home' ? 'bg-off-white' : 'bg-matte-black'}`}
                 >
                   {/* Mount and transition individual view modules strictly based on selection */}
                   {activeSection === 'home' && <Hero onSectionChange={handleSectionTransition} />}

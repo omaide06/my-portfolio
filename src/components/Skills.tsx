@@ -1,11 +1,12 @@
 import React from 'react';
 import { motion } from 'motion/react';
+import SkewCards from '@/components/ui/gradient-card-showcase';
 
 export default function Skills() {
   return (
     <section
       id="skills"
-      className="py-24 bg-matte-black text-white relative overflow-hidden border-t border-white/5 min-h-[70vh] flex flex-col justify-center"
+      className="min-h-full min-h-screen py-24 bg-matte-black text-white relative overflow-hidden border-t border-white/5 flex flex-col justify-center"
     >
       {/* Editorial Grid Backing Deco */}
       <div className="absolute inset-0 grid grid-cols-12 pointer-events-none opacity-[0.02]">
@@ -29,17 +30,8 @@ export default function Skills() {
           </motion.h2>
         </div>
 
-        {/* Clean slate ready for fresh custom layout */}
-        <div className="py-12 flex flex-col items-center justify-center text-center">
-          <div className="border border-dashed border-white/10 rounded-2xl p-8 max-w-lg w-full text-center">
-            <span className="text-xs font-mono text-mustard uppercase tracking-widest block mb-2">
-              // Ready to build
-            </span>
-            <p className="text-neutral-400 font-sans text-sm">
-              Section cleared. We will now build the new Technical Skills layout from scratch.
-            </p>
-          </div>
-        </div>
+        {/* SkewCards Component */}
+        <SkewCards />
       </div>
     </section>
   );

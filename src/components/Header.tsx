@@ -89,7 +89,7 @@ export default function Header({ activeSection: controlledActiveSection, onSecti
     { name: 'Home', target: 'home' },
     { name: 'About', target: 'about' },
     { name: 'Skills', target: 'skills' },
-    { name: 'Experience', target: 'experience' },
+    { name: 'Academic', target: 'experience' },
     { name: 'Contact', target: 'contact' },
   ];
 
