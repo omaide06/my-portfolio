@@ -265,14 +265,21 @@ export default function Skills() {
         </div>
 
         {/* Section Header */}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-12">
-          <div className="space-y-3 max-w-2xl">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-16">
+          <div className="space-y-4 max-w-xl">
             <span className="text-xs uppercase tracking-widest font-mono text-mustard">
               // Technical Capabilities
             </span>
             <h2 className="text-4xl sm:text-5xl font-display font-bold leading-tight tracking-tight">
               My learning curriculum & growing skill set.
             </h2>
+            <p className="text-sm font-sans font-light text-medium-gray leading-relaxed">
+              As a dedicated student, I enjoy exploring fresh architectures, learning languages, and polishing developmental workflows. Click to view my personal growth summary for any competency.
+            </p>
+          </div>
+          <div className="flex items-center gap-2 bg-white/5 py-1.5 px-3.5 rounded-full border border-white/10 text-xs font-mono text-medium-gray">
+            <span className="w-2 h-2 rounded-full bg-mustard animate-pulse" />
+            <span>Currently expanding backend & cloud methodologies</span>
           </div>
         </div>
 
