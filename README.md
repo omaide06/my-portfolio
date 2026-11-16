@@ -61,6 +61,20 @@ Make sure you have Node.js (v18 or higher recommended) and npm installed on your
    ```
    Open `http://localhost:3000` in your browser.
 
+### Building for Production
+
+To create an optimized production build:
+
+```bash
+npm run build
+```
+
+To preview the production build locally:
+
+```bash
+npm run preview
+```
+
 ---
 
 ## Project Structure
